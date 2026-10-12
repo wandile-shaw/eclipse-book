@@ -35,7 +35,7 @@ a.ep:active{transform:scale(.98)}
 .soon{background:rgba(127,176,255,.1);color:var(--acc);border:1px solid rgba(127,176,255,.35)}
 .dev{background:rgba(255,190,70,.1);color:#ffc65c;border:1px solid rgba(255,190,70,.4)}
 .go{margin-left:auto;font-size:24px;color:var(--acc)}
-.lock{border-color:var(--line);box-shadow:none;background:var(--card)}
+.lock{border-color:var(--line);box-shadow:none;background:var(--card);animation:rise .7s ease .28s both!important}
 .lock .th{display:grid;place-items:center;font-size:26px;background:#080d20}
 .red{display:block;height:22px;width:150px;margin:5px 0 9px;border-radius:3px;background:#01020a;box-shadow:0 0 0 1px #1d2a58;position:relative;overflow:hidden}
 .red::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(127,176,255,.25),transparent);transform:translateX(-100%);animation:scan 3s ease-in-out infinite}
@@ -58,23 +58,23 @@ footer{position:relative;z-index:2;text-align:center;color:var(--mute);font-size
 <main>
 <h2>Choose your episode</h2>
 <a class="ep" href="#episode-1" id="ep1"><div class="th" style="background-image:url(p0.jpg)"></div><div><div class="n">EPISODE 1</div><div class="ti">The Other Life</div><span class="chip live"><i></i>Read now</span></div><div class="go">&rarr;</div></a>
-<div class="ep lock"><div class="th">&#128274;</div><div><div class="n">EPISODE 2</div><span class="red"></span><span class="chip soon">Coming soon</span></div></div>
+<a class="ep" href="#episode-2" id="ep2"><div class="th" style="background-image:url(e2-01.jpg)"></div><div><div class="n">EPISODE 2</div><div class="ti">Loose Ends</div><span class="chip live"><i></i>Read now</span></div><div class="go">&rarr;</div></a>
 <div class="ep lock"><div class="th">&#9881;&#65039;</div><div style="flex:1"><div class="n">EPISODE 3</div><span class="red"></span><span class="chip dev"><i></i>In development</span><div class="bar"><b></b></div></div></div>
 </main>
 <footer>&copy; Wandile</footer>
-<div id="reader" aria-hidden="true"><div id="rbar"><button id="rb" type="button">&larr; Episodes</button><span>Eclipse &middot; Episode 1</span></div><iframe id="fr" title="Eclipse Episode 1: The Other Life"></iframe></div>
+<div id="reader" aria-hidden="true"><div id="rbar"><button id="rb" type="button">&larr; Episodes</button><span id="rt">Eclipse &middot; Episode 1</span></div><iframe id="fr" title="Eclipse episode"></iframe></div>
 <script>
 (function(){
 var rd=document.getElementById('reader'),fr=document.getElementById('fr'),ready=false;
-function load(){if(!ready){fr.src='episode-1.html';ready=true}}
-function openEp(push){load();rd.classList.add('open');rd.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';if(push)history.pushState({r:1},'','#episode-1')}
+var ep=0;function load(n){if(ep!==n){fr.src='episode-'+n+'.html';ep=n}}
+function openEp(n,push){load(n);document.getElementById('rt').textContent='Eclipse \u00b7 Episode '+n;rd.classList.add('open');rd.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';if(push)history.pushState({r:n},'','#episode-'+n)}
 function shut(){rd.classList.remove('open');rd.setAttribute('aria-hidden','true');document.body.style.overflow=''}
 function back(){if(history.state&&history.state.r)history.back();else{shut();history.replaceState(null,'',location.pathname)}}
-document.getElementById('ep1').addEventListener('click',function(e){e.preventDefault();openEp(true)});
+[1,2].forEach(function(n){document.getElementById('ep'+n).addEventListener('click',function(e){e.preventDefault();openEp(n,true)})});
 document.getElementById('rb').addEventListener('click',back);
-addEventListener('popstate',function(){location.hash==='#episode-1'?openEp(false):shut()});
+addEventListener('popstate',function(){var m=location.hash.match(/^#episode-(\d)$/);m?openEp(+m[1],false):shut()});
 addEventListener('message',function(e){if(e.source===fr.contentWindow&&e.data==='close')back()});
-addEventListener('load',function(){if(location.hash==='#episode-1')openEp(false);else setTimeout(load,900)});
+addEventListener('load',function(){var m=location.hash.match(/^#episode-(\d)$/);if(m)openEp(+m[1],false);else setTimeout(function(){load(1)},900)});
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
 var c=document.getElementById('rain'),x=c.getContext('2d'),W,H,d=[],dpr=Math.min(devicePixelRatio||1,2);
 function sz(){W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)}
