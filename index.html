@@ -74,7 +74,7 @@ function back(){if(history.state&&history.state.r)history.back();else{shut();his
 document.getElementById('rb').addEventListener('click',back);
 addEventListener('popstate',function(){var m=location.hash.match(/^#episode-(\d)$/);m?openEp(+m[1],false):shut()});
 addEventListener('message',function(e){if(e.source===fr.contentWindow&&e.data==='close')back()});
-addEventListener('load',function(){var m=location.hash.match(/^#episode-(\d)$/);if(m)openEp(+m[1],false);else setTimeout(function(){load(1)},900)});
+addEventListener('load',function(){var m=location.hash.match(/^#episode-(\d)$/);if(m)openEp(+m[1],false);else setTimeout(function(){try{fetch('episode-1.html')}catch(e){}},900)});
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
 var c=document.getElementById('rain'),x=c.getContext('2d'),W,H,d=[],dpr=Math.min(devicePixelRatio||1,2);
 function sz(){W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)}
