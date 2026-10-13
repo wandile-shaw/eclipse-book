@@ -43,6 +43,13 @@ a.ep:active{transform:scale(.98)}
 .bar{height:4px;border-radius:2px;background:#16204a;margin-top:11px;overflow:hidden}
 .bar b{display:block;height:100%;width:38%;background:repeating-linear-gradient(45deg,#ffc65c 0 8px,#b07d1c 8px 16px);background-size:22px 22px;animation:slide 2.2s linear infinite}
 @keyframes slide{to{background-position:22px 0}}
+.rate{margin:26px 0 0;padding:20px;border-radius:18px;background:linear-gradient(145deg,#13224f,var(--card));border:1px solid rgba(88,178,255,.3);text-align:center;animation:rise .7s ease .4s both}
+.rate h2{margin:0 0 12px}
+.stars{display:flex;justify-content:center;gap:6px}
+.stars button{background:none;border:0;font-size:38px;line-height:1;color:#2a3a6e;padding:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s,color .15s}
+.stars button.on{color:#ffc65c;text-shadow:0 0 14px rgba(255,190,70,.7)}
+.stars button:active{transform:scale(1.2)}
+#rmsg{margin:10px 0 0;color:var(--mute);font:14px system-ui,sans-serif}
 footer{position:relative;z-index:2;text-align:center;color:var(--mute);font-size:13px;padding:6px 0 34px}
 #reader{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;transform:translateY(100%);visibility:hidden;transition:transform .45s cubic-bezier(.2,.8,.2,1),visibility 0s .45s}
 #reader.open{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
@@ -60,6 +67,7 @@ footer{position:relative;z-index:2;text-align:center;color:var(--mute);font-size
 <a class="ep" href="#episode-1" id="ep1"><div class="th" style="background-image:url(p0.jpg)"></div><div><div class="n">EPISODE 1</div><div class="ti">The Other Life</div><span class="chip live"><i></i>Read now</span></div><div class="go">&rarr;</div></a>
 <a class="ep" href="#episode-2" id="ep2"><div class="th" style="background-image:url(e2-01.jpg)"></div><div><div class="n">EPISODE 2</div><div class="ti">Loose Ends</div><span class="chip live"><i></i>Read now</span></div><div class="go">&rarr;</div></a>
 <div class="ep lock"><div class="th">&#9881;&#65039;</div><div style="flex:1"><div class="n">EPISODE 3</div><span class="red"></span><span class="chip dev"><i></i>In development</span><div class="bar"><b></b></div></div></div>
+<div class="rate" id="rate" hidden><h2>Rate Eclipse</h2><div class="stars" id="stars"><button type="button" data-s="1" aria-label="1 star">&#9733;</button><button type="button" data-s="2" aria-label="2 stars">&#9733;</button><button type="button" data-s="3" aria-label="3 stars">&#9733;</button><button type="button" data-s="4" aria-label="4 stars">&#9733;</button><button type="button" data-s="5" aria-label="5 stars">&#9733;</button></div><p id="rmsg"></p></div>
 </main>
 <footer>&copy; Wandile</footer>
 <div id="reader" aria-hidden="true"><div id="rbar"><button id="rb" type="button">&larr; Episodes</button><span id="rt">Eclipse &middot; Episode 1</span></div><iframe id="fr" title="Eclipse episode"></iframe></div>
@@ -82,6 +90,16 @@ sz();addEventListener('resize',sz);
 for(var i=0;i<70;i++)d.push({x:Math.random(),y:Math.random(),l:10+Math.random()*16,s:.012+Math.random()*.014});
 (function f(){x.clearRect(0,0,W,H);x.strokeStyle='rgba(150,195,255,.28)';x.lineWidth=1;x.beginPath();
 d.forEach(function(r){r.y+=r.s;if(r.y>1.05){r.y=-.05;r.x=Math.random()}var px=r.x*W,py=r.y*H;x.moveTo(px,py);x.lineTo(px-3,py+r.l)});x.stroke();requestAnimationFrame(f)})()}
+})();
+var RATE_URL='https://eclipse-ratings.wandile-shaw.workers.dev';
+(function(){
+var box=document.getElementById('rate'),st=document.querySelectorAll('#stars button'),msg=document.getElementById('rmsg'),mine=0,id;
+function rid(){return String(Date.now())+Math.random().toString(36).slice(2,10)}
+try{id=localStorage.getItem('eclid');if(!id){id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():rid();localStorage.setItem('eclid',id)}}catch(e){id=rid()}
+function paint(n){st.forEach(function(b,i){b.classList.toggle('on',i<n)})}
+function show(d){mine=d.mine||0;paint(mine);msg.textContent=mine?(d.n>=3?'Average '+d.avg.toFixed(1)+' \u2605 \u00b7 You rated '+mine+' \u2605':'Thanks for rating!'):'Tap a star to rate'}
+fetch(RATE_URL+'/?id='+encodeURIComponent(id)).then(function(r){return r.json()}).then(function(d){box.hidden=false;show(d)}).catch(function(){});
+st.forEach(function(b){b.addEventListener('click',function(){var s=+b.dataset.s;paint(s);msg.textContent='Saving...';fetch(RATE_URL+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,stars:s})}).then(function(r){return r.json()}).then(show).catch(function(){msg.textContent='Could not save. Try again.'})})});
 })();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "efb8c08a3da447379d4d8641954baa0c"}'></script><!-- End Cloudflare Web Analytics -->
