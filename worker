@@ -1,0 +1,45 @@
+// Eclipse star ratings. Needs a KV binding named RATINGS.
+const ALLOWED = ['https://eclipse-book.wandile-shaw.workers.dev'];
+
+export default {
+  async fetch(req, env) {
+    const origin = req.headers.get('Origin') || '';
+    const cors = {
+      'Access-Control-Allow-Origin': ALLOWED.includes(origin) ? origin : ALLOWED[0],
+      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Vary': 'Origin'
+    };
+    if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
+    const json = (o, s = 200) =>
+      new Response(JSON.stringify(o), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
+
+    const agg = JSON.parse((await env.RATINGS.get('agg')) || '{"1":0,"2":0,"3":0,"4":0,"5":0}');
+    const summary = () => {
+      let n = 0, s = 0;
+      for (let i = 1; i <= 5; i++) { n += agg[i]; s += agg[i] * i; }
+      return { avg: n ? Math.round((s / n) * 10) / 10 : 0, n };
+    };
+    const okId = (v) => typeof v === 'string' && /^[A-Za-z0-9._-]{8,80}$/.test(v);
+
+    if (req.method === 'GET') {
+      const id = new URL(req.url).searchParams.get('id');
+      const mine = okId(id) ? await env.RATINGS.get('u:' + id) : null;
+      return json({ ...summary(), mine: mine ? Number(mine) : 0 });
+    }
+
+    if (req.method === 'POST') {
+      let b;
+      try { b = await req.json(); } catch (e) { return json({ error: 'bad request' }, 400); }
+      const stars = Math.round(Number(b.stars));
+      if (!okId(b.id) || !(stars >= 1 && stars <= 5)) return json({ error: 'bad request' }, 400);
+      const prev = await env.RATINGS.get('u:' + b.id);
+      if (prev && agg[prev] > 0) agg[prev] -= 1;
+      agg[stars] += 1;
+      await env.RATINGS.put('agg', JSON.stringify(agg));
+      await env.RATINGS.put('u:' + b.id, String(stars));
+      return json({ ...summary(), mine: stars });
+    }
+    return json({ error: 'not allowed' }, 405);
+  }
+};
